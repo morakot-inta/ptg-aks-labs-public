@@ -1,0 +1,41 @@
+# Demonstrated, not practised. Copy this into azure-pipelines.yml at the root of your own repository.
+#
+# There is NO secret in this file, and none in the pipeline's variables. The pipeline proves
+# its identity to Azure the same way your pod did in Lab 3 — the service connection is a
+# workload identity federation connection, so Azure DevOps is handed a short-lived token.
+trigger:
+  branches:
+    include:
+      - main
+
+# A Microsoft-hosted agent cannot reach a private API server.
+# For the real cluster this becomes:  pool: { name: ptg-aks-agents }
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  - group: aks-deploy          # RESOURCE_GROUP, CLUSTER, NAMESPACE — no secrets in here
+
+steps:
+  - checkout: self
+
+  - task: AzureCLI@2
+    displayName: Deploy to AKS
+    env:
+      # kubelogin's azurepipelines mode needs the pipeline's own OAuth token
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+    inputs:
+      # A workload identity federation service connection: no password,
+      # no service principal secret, nothing to rotate.
+      azureSubscription: ptg-aks-wif
+      scriptType: bash
+      scriptLocation: inlineScript
+      inlineScript: |
+        az aks install-cli --only-show-errors     # kubectl + kubelogin
+        az aks get-credentials -g $(RESOURCE_GROUP) -n $(CLUSTER)
+
+        # The cluster uses Entra ID + Azure RBAC, so get-credentials alone is
+        # not enough — the kubeconfig has to be converted before kubectl works.
+        kubelogin convert-kubeconfig -l azurepipelines
+
+        kubectl apply -f k8s/ -n $(NAMESPACE)
