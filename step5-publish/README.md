@@ -1,12 +1,36 @@
 # Step 5 — Publish it
 
-Demonstrated in the session rather than practised — but these are the files, ready to apply
-in your own time.
+## 0. Enable Gateway API and Create Share Gateway
+```bash
+az aks update --resource-group $RG --name $CLUSTER --enable-gateway-api
+```
 
-The Gateway already exists. **You attach a route to it — you do not create one.** That split
-is the whole point: the platform team owns the Gateway, your team owns the HTTPRoute.
+```bash
+kubectl create namespace gateway-system --dry-run=client -o yaml | kubectl apply -f -
 
----
+kubectl apply -f - <<'YAML'
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: ptg-shared-gateway
+  namespace: gateway-system
+spec:
+  gatewayClassName: istio
+  listeners:
+  - name: http
+    port: 80
+    protocol: HTTP
+    hostname: "*.local"
+    allowedRoutes:
+      namespaces:
+        from: All
+  infrastructure:
+    annotations:
+      service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+YAML
+
+kubectl -n gateway-system get gateway ptg-shared-gateway
+```
 
 ## 1. A ClusterIP Service
 
@@ -27,7 +51,7 @@ spec:
   - name: ptg-shared-gateway
     namespace: gateway-system
   hostnames:
-  - "<NAMESPACE>.lab.ptg.local"     # ← this line
+  - "<NAMESPACE>.local"     # ← this line
 ```
 
 ```bash
@@ -48,11 +72,11 @@ From inside your own pod — `curl` is in the image, so nothing extra is pulled:
 
 ```bash
 POD=$(kubectl get pod -l app=orders-api --sort-by=.metadata.creationTimestamp -o name | tail -1)
-kubectl exec $POD -- curl -s -i "http://$NAMESPACE.lab.ptg.local/healthz"
+kubectl exec $POD -- curl -s -i --resolve "$NAMESPACE.local:80:$GW" http://$NAMESPACE.local/healthz
 ```
 
-> Why not `kubectl run` a curl image? Because the allowed-images policy from Lab 2 would
-> refuse it — it only permits images from ACR. Your own pod already has what you need.
+> Why not `kubectl run` a curl image? That means pulling and later cleaning up a second
+> image just to make one HTTP call. Your own pod already has `curl` — use that instead.
 
 ---
 
@@ -60,12 +84,3 @@ kubectl exec $POD -- curl -s -i "http://$NAMESPACE.lab.ptg.local/healthz"
 
 `curl` returns **HTTP 200** from your own service.
 
----
-
-## When it does not attach
-
-| What the status says | Usually means |
-|---|---|
-| `NoMatchingListenerHostname` | your hostname does not match the pattern the shared Gateway listens for — check the spelling of your namespace |
-| `BackendNotFound` | the `backendRefs` name does not match a Service in **your** namespace |
-| nothing at all in `status` | the `parentRefs` name or namespace is wrong, so the Gateway never saw your route |

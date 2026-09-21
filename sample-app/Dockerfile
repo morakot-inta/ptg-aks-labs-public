@@ -1,8 +1,8 @@
 FROM node:24-alpine
 
 # curl is here on purpose. Step 5 verifies the published route from inside the
-# cluster, and the allowed-images policy from Lab 2 blocks pulling a throwaway
-# curl image — so the tool has to travel with the application.
+# cluster, and shipping curl with the application avoids pulling and cleaning
+# up a second, throwaway image just to make one HTTP call.
 RUN apk add --no-cache curl
 
 WORKDIR /app

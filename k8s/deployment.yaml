@@ -1,8 +1,8 @@
-# Lab 2 — a Deployment this cluster accepts.
+# Lab 2 — a Deployment built to PTG's platform conventions.
 #
 # One line is yours to change: the image. Everything else is already what the
-# platform team's rules require, and each of those lines is commented so you
-# can see which rule it satisfies.
+# platform team expects to see in production, and each of those lines is
+# commented so you can see which convention it satisfies.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -17,7 +17,7 @@ spec:
       labels:
         app: orders-api
     spec:
-      securityContext:                    # RULE — containers may not run as root
+      securityContext:                    # CONVENTION — containers run as non-root
         runAsNonRoot: true
         runAsUser: 10001
       containers:
@@ -28,18 +28,18 @@ spec:
         image: <ACR>.azurecr.io/orders-api:<NAMESPACE>
         ports:
         - containerPort: 8080
-        resources:                        # RULE — requests and limits are required
+        resources:                        # CONVENTION — requests and limits are always set
           requests:
             cpu: 100m
             memory: 128Mi
           limits:
             cpu: 500m
             memory: 512Mi
-        livenessProbe:                    # RULE — the cluster must be able to ask
-          httpGet:                        #        whether the container is alive
+        livenessProbe:                    # CONVENTION — the cluster can ask whether
+          httpGet:                        #             the container is alive
             path: /healthz
             port: 8080
-        readinessProbe:                   #        and whether it is ready for traffic
+        readinessProbe:                   #             and whether it is ready for traffic
           httpGet:
             path: /ready
             port: 8080

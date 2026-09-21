@@ -1,24 +1,39 @@
 # Lab 3 — Mount a secret from Key Vault · 15 minutes
 
-Short lab. The secret arrives as a **file**, not an environment variable — that is the part
-that usually means a code change in your own application.
+## 0. Create Keyvault resource 
+```bash
+export KEYVALUT_NAME=""
+```
+```bash
+az keyvault create \
+  --name $KEYVALUT_NAME \
+  --resource-group $RG \
+  --location southeastasia
+```
+```
+az role assignment create \
+  --role "Key Vault Administrator" \
+  --assignee <user-email-or-object-id> \
+  --scope "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KEYVALUT_NAME"
+```
+and create secret object 
+```bash
+az keyvault secret set \
+  --vault-name $KEYVALUT_NAME \
+  --name db-password \
+  --value "secret"
+```
 
 ---
 
 ## 1. Create the SecretProviderClass
 
 Edit `k8s/secretproviderclass.yaml` and fill in three values from your card —
-`<KV-CLIENT-ID>`, `<KEY-VAULT>` and `<TENANT-ID>` — then:
+`<CSI_IDENTITY>`, `<KEY-VAULT>` and `<TENANT-ID>` — then:
 
 ```bash
 kubectl apply -f k8s/secretproviderclass.yaml
 ```
-
-> **`<KV-CLIENT-ID>`, not `<CLIENT-ID>`.** Your card has two client IDs and they are not
-> interchangeable. This one belongs to the identity the Key Vault add-on attached to the
-> cluster's nodes, because the thing fetching the secret is the CSI driver on the node, not
-> your pod. The other one is your pod's, and it is Lab 4's. Getting them the wrong way
-> round leaves the pod in `ContainerCreating` with `Identity not found` in its events.
 
 ## 2. Add a volume to your Deployment
 
@@ -68,10 +83,6 @@ kubectl apply -f k8s/deployment.yaml
 kubectl rollout status deploy/orders-api
 ```
 
-**Wait for that second command to finish.** Until it does, the old pods are still there and
-still have no secret mounted — read one of those and you will think your YAML is wrong when
-it is not.
-
 ## 3. Read it from inside the pod
 
 ```bash
@@ -79,20 +90,7 @@ POD=$(kubectl get pod -l app=orders-api --sort-by=.metadata.creationTimestamp -o
 kubectl exec $POD -- cat /mnt/secrets-store/db-password
 ```
 
-The app also reports on it, without printing the value:
-
+or call the api 
 ```bash
 kubectl exec $POD -- curl -s localhost:8080/secret
 ```
-
-Before the volume is mounted that returns `503` and tells you what is missing.
-
----
-
-## Done when
-
-The command above prints the secret value.
-
-**Now ask yourself:** your own application reads its secrets from somewhere today. If it
-reads an environment variable, this is a code change — not a big one, but a real one. That
-is worth knowing now rather than during a migration.

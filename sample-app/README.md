@@ -28,8 +28,8 @@ identical, and separating them is what makes the lab debuggable in 45 minutes.
 in any manifest. `DefaultAzureCredential` is handed to the SDK and Azure decides the rest.
 
 **`curl` is installed in the image.** Step 5 verifies the published route from inside the
-cluster, and the allowed-images policy from Lab 2 blocks pulling a throwaway curl image — so
-the tool travels with the application instead.
+cluster, and shipping `curl` with the application avoids pulling and cleaning up a second,
+throwaway image just to make one HTTP call.
 
 **No build step, and no `dist/`.** Node 22.18 and later run a `.ts` file by stripping the
 type annotations, so the image copies `index.ts` and runs it. `npm run typecheck` still runs
@@ -44,7 +44,7 @@ az acr build --registry <ACR> --image orders-api:<NAMESPACE> .
 ```
 
 The platform team builds `orders-api:v1` the same way before the session, as the fallback
-for anyone whose build fails and as the image the policy preflight uses.
+for anyone whose build fails.
 
 Either way the build happens inside ACR, so nothing is built on the machine running the
 command and nobody needs Docker.

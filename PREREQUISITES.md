@@ -105,11 +105,10 @@ az aks show -g $RG -n $CLUSTER --query '{oidc:oidcIssuerProfile.enabled,
 |---|---|---|---|
 | 1 | Istio add-on, revision **`asm-1-26` or later** | `az aks mesh enable -g $RG -n $CLUSTER` | Step 5 |
 | 2 | **Managed Gateway API** | `az aks update -g $RG -n $CLUSTER --enable-gateway-api` | Step 5. **Needs `azure-cli` 2.86.0+** — `az upgrade`, or `brew upgrade azure-cli` on a Homebrew install |
-| 3 | Azure Policy add-on | `az aks enable-addons -g $RG -n $CLUSTER --addons azure-policy` | Lab 2 |
-| 4 | Secrets Store CSI driver | `az aks enable-addons -g $RG -n $CLUSTER --addons azure-keyvault-secrets-provider` | Lab 3. Runbook step 2 enables it alongside `azure-policy`; step 1's shape check now reports whether it is on |
-| 5 | ACR attached | `az aks update -g $RG -n $CLUSTER --attach-acr $ACR` | Every lab — this is what removes the `imagePullSecret` |
+| 3 | Secrets Store CSI driver | `az aks enable-addons -g $RG -n $CLUSTER --addons azure-keyvault-secrets-provider` | Lab 3. Runbook step 2 enables it; step 1's shape check now reports whether it is on |
+| 4 | ACR attached | `az aks update -g $RG -n $CLUSTER --attach-acr $ACR` | Every lab — this is what removes the `imagePullSecret` |
 
-Runbook steps 2 and 3.
+Runbook step 2.
 
 Verify 1 and 2 landed:
 
@@ -117,23 +116,7 @@ Verify 1 and 2 landed:
 kubectl get gatewayclass          # expect "istio" with ACCEPTED=True
 ```
 
-## B3 · The four policies Lab 2 depends on
-
-The add-on alone enforces nothing. Assign these as **`deny`**, scoped to the resource group:
-
-| Policy | Catches |
-|---|---|
-| `Kubernetes cluster containers should only use allowed images` | an image that is not from your ACR |
-| `Kubernetes cluster containers CPU and memory resource limits should not exceed the specified limits` | missing or excessive limits |
-| `Kubernetes cluster pods and containers should only run with approved user and group IDs` | running as root |
-| `Ensure cluster containers have readiness or liveness probes configured` | missing probes |
-
-Runbook step 3 assigns all four with the right parameters.
-
-> **Gatekeeper syncs on a schedule — allow 15 to 20 minutes** before the rules reject
-> anything. Verifying immediately gives a false failure.
-
-## B4 · Supporting resources
+## B3 · Supporting resources
 
 | # | What | For |
 |---|---|---|
@@ -142,25 +125,25 @@ Runbook step 3 assigns all four with the right parameters.
 | 3 | **Storage account**, container `lab-data`, one file `hello.txt` | Lab 4 |
 | 4 | One shared **Gateway**, internal, in `gateway-system` | Step 5 |
 
-Runbook steps 4, 5 and 7.
+Runbook steps 3, 4 and 6.
 
-## B5 · Per attendee
+## B4 · Per attendee
 
 | # | What | Note |
 |---|---|---|
 | 1 | A **custom role**, `AKS Lab Namespace Creator`, assigned at cluster scope | Attendees create their own namespace in Lab 0. No built-in role allows it — RBAC Writer grants `namespaces/read` only, RBAC Admin excludes `namespaces/write`, and Cluster Admin gives away the cluster. Creating the role definition needs **Owner** or **User Access Administrator** |
 | 2 | A **federated credential** on a managed identity, subject `system:serviceaccount:<ns>:orders-api` | One identity holds **at most 20**, so more than 20 attendees needs a second. Create them **sequentially** — concurrently under one identity returns 409 — and **at least an hour ahead**, or a token request fails with `AADSTS70021` while it propagates |
 | 3 | **Azure Kubernetes Service Cluster User Role** on the cluster | Without it `az aks get-credentials` fails and Lab 0 stops dead |
-| 4 | **Azure Kubernetes Service RBAC Writer**, scoped to `<cluster-id>/namespaces/<ns>` | Requires B1's `--enable-aad --enable-azure-rbac`. The scope is an Azure string, so it is assigned before the attendee creates the namespace |
+| 4 | **Azure Kubernetes Service RBAC Admin**, scoped to `<cluster-id>/namespaces/<ns>` | Requires B1's `--enable-aad --enable-azure-rbac`. The scope is an Azure string, so it is assigned before the attendee creates the namespace. **Not RBAC Writer** — its dataActions are an explicit allow-list that does not include `secrets-store.csi.x-k8s.io/secretproviderclasses`, so Lab 3's `kubectl apply` is refused with "does not have access to the resource in Azure" even though the underlying Kubernetes `edit` role does cover it. RBAC Admin's single wildcard dataAction does, and the scope still confines it to one namespace |
 | 5 | **Container Registry Tasks Contributor** + **AcrPull** on the registry | Lab 1 has each attendee build `orders-api:<their namespace>`. `AcrPush` is the wrong role and will fail — `az acr build` schedules a task run, which is control plane, and AcrPush grants only `pull/read` and `push/write`. One tag each: twenty people pushing `:v1` would overwrite one another |
 | 6 | A printed **card**: namespace, resource group, cluster, ACR, **their image reference**, **both client IDs**, key vault, tenant ID, storage account | Every lab refers to these placeholders. **The namespace name is not theirs to invent** — the federated credential names it, the image is tagged with it, and so is Step 5's hostname |
 
-Items 1 to 5 are runbook step 8; item 6 is step 10.
+Items 1 to 5 are runbook step 7; item 6 is step 9.
 
 The managed identity needs **Storage Blob Data Contributor** on the container (Contributor,
 not Reader — Lab 4 uploads as well as downloads) and **Key Vault Secrets User** on the vault.
 
-## B6 · Rehearse Lab 1 at the size you will run it
+## B5 · Rehearse Lab 1 at the size you will run it
 
 Microsoft publishes **no concurrent-run limit for ACR Tasks per registry SKU**, and no
 documented behaviour for what happens past one — the CLI output implies runs queue, but
@@ -170,14 +153,14 @@ is therefore untested ground that cannot be looked up.
 Run it at the real size a few days ahead: ask five colleagues to fire the Lab 1 command at
 once, and time it. If builds queue longer than the 15-minute slot, the options are to have
 half the room start with Lab 2's manifest while the other half builds, or to fall back to
-the `orders-api:v1` image from runbook step 4. Dedicated agent pools would be the documented
+the `orders-api:v1` image from runbook step 3. Dedicated agent pools would be the documented
 fix, but they are Premium-only and still in preview.
 
-## B7 · Prove it, do not assume it
+## B6 · Prove it, do not assume it
 
-Runbook step 9 applies the deliberately broken Lab 2 manifest. **If that manifest is accepted, the
-policies are not in force and Lab 2 has no lesson left in it** — which is invisible to any
-check that only lists resources.
+Runbook step 8 checks that the image is actually in ACR and that the file Lab 4 reads is
+actually in storage — **the resource existing is not the same as the specific image tag or
+blob existing**, which a plain resource listing will not tell you.
 
 ---
 
@@ -198,6 +181,6 @@ corporate network. This has to be settled before the cluster is built.
 
 ### Decision 3 · ~~How Step 5 is verified~~ — closed
 
-The obvious approach, a throwaway `curl` pod, is blocked by the allowed-images policy from
-Lab 2. Resolved by installing `curl` in the sample image, so Step 5 verifies from the
-attendee's own pod and no jump box is needed.
+The obvious approach, a throwaway `curl` pod, means pulling and cleaning up a second image
+just to make one HTTP call. Resolved by installing `curl` in the sample image, so Step 5
+verifies from the attendee's own pod and no jump box is needed.

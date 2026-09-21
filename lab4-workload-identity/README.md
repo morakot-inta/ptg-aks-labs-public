@@ -1,29 +1,35 @@
 # Lab 4 — Wire up Workload Identity · 45 minutes
 
-Your pod is going to read and write files in Azure Storage **with no access key, no
-connection string and no SAS token** — none of which appear anywhere in your manifest or in
-the application code.
+## 0. Create Storage account
 
-The hardest lab, because **when you get it wrong nothing errors.** The pod starts normally
-and only the storage call fails.
+```bash
+export STORAGE_ACCOUNT_NAME=""
+```
+```bash
+az storage account create \
+  --name $STORAGE_ACCOUNT_NAME \
+  --resource-group $RG \
+  --location southeastasia \
+  --sku Standard_LRS
+```
+```bash
+az storage container create \
+  --name lab-data \
+  --account-name $STORAGE_ACCOUNT_NAME \
+  --auth-mode login
+  ```
 
 ---
 
 ## 1. Create the ServiceAccount
 
-Put your `<CLIENT-ID>` into `k8s/serviceaccount.yaml` — it is on your card, and it is in
-`$CLIENT_ID` if you still have the shell from Lab 0. Type it into the file rather than
-referring to the variable: YAML does not expand shell variables.
-
-The same client ID is on everyone's card. It identifies one managed identity that the whole
-room shares — what makes it *yours* is the federated credential the platform team created
-naming **your** namespace and this ServiceAccount.
-
-**This is a different identity from the one in Lab 3**, and the difference is the lesson.
-Lab 3 read the vault with an identity bolted to the *node*: every pod on that node can use
-it, yours included, and nothing about it knows which namespace asked. From here on the
-identity is attached to *your pod*, through the ServiceAccount below — which is why Azure
-can grant it access to your storage and nobody else's. Then:
+create managed identity
+```bash
+az identity create \
+  --name id-order-api \
+  --resource-group $RG \
+  --location southeastasia
+```
 
 ```bash
 kubectl apply -f k8s/serviceaccount.yaml
@@ -101,46 +107,5 @@ kubectl exec $POD -- curl -s localhost:8080/whoami
 
 # b) can that identity SEE the container?
 kubectl exec $POD -- curl -s localhost:8080/storage
-
-# c) can it READ a file?
-kubectl exec $POD -- curl -s localhost:8080/storage/read?name=hello.txt
-
-# d) can it WRITE one?
-kubectl exec $POD -- curl -s -X POST localhost:8080/storage/write
 ```
 
-Step (d) prints the name of the file it created. Read it back:
-
-```bash
-kubectl exec $POD -- curl -s "localhost:8080/storage/read?name=<the-name-it-printed>"
-```
-
----
-
-## Done when
-
-You have **written a file and read it back**, and there is no key, no connection string and
-no SAS token anywhere in your Deployment.
-
-Look at the manifest you just applied. The only thing in it that relates to Azure is a
-client ID — which is not a secret, and is safe to commit.
-
----
-
-## When it does not work
-
-The three endpoints separate the two failures that look identical from the outside:
-
-| What you see | What it means | Fix |
-|---|---|---|
-| `/whoami` fails | The pod has **no identity** | The pod-template label. Nine times out of ten this is it — the annotation on the ServiceAccount feels like it should be enough, and it is not |
-| `/whoami` works but `/storage` returns 403 | The pod **has** an identity, but it is not allowed to touch the container | A role assignment problem, not a Kubernetes one. Tell the trainer |
-| `STORAGE_ACCOUNT is not set` | Change **C** is missing | Add the `env` block |
-
-```bash
-# the label must be on the POD, not just the Deployment
-kubectl get pod -l app=orders-api -o jsonpath='{.items[0].metadata.labels}' | tr ',' '\n'
-
-# the projected token only exists if the label is set
-kubectl exec $POD -- ls /var/run/secrets/azure/tokens/
-```

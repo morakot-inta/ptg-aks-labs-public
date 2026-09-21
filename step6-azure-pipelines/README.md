@@ -2,6 +2,51 @@
 
 Demonstrated in the session rather than practised — but this is the file, ready to copy.
 
+## Before this runs at all: create the service connection
+
+One-time setup for whoever demos this, not something attendees do.
+
+1. **Azure DevOps → Project Settings → Service connections → New service connection → Azure
+   Resource Manager**
+2. Choose **Workload identity federation (automatic)** — Azure DevOps creates the Entra app
+   registration and federated credential for you. Use **manual** only if you do not have
+   permission to create app registrations yourself and need to hand that part to someone who
+   does.
+3. Pick the subscription that holds the training cluster and ACR.
+4. **Name it exactly `ptg-aks-wif`.** The pipeline YAML references this name directly — a
+   different name here means `AzureCLI@2` fails to find the connection at all.
+5. Grant access to all pipelines, or restrict it once you know which pipeline needs it.
+
+Creating the connection only gets you a service principal that can authenticate — on its own
+it can do nothing on the cluster. Grant it the same two roles an attendee gets in runbook
+step 7, scoped to wherever this pipeline deploys:
+
+```bash
+SC_OBJECT_ID=<the service principal's object id — see below for where to find it>
+AKS_ID=$(az aks show -g "$RG" -n "$CLUSTER" --query id -o tsv)
+
+az role assignment create --assignee-object-id "$SC_OBJECT_ID" \
+  --assignee-principal-type ServicePrincipal \
+  --role "Azure Kubernetes Service Cluster User Role" --scope "$AKS_ID"
+
+az role assignment create --assignee-object-id "$SC_OBJECT_ID" \
+  --assignee-principal-type ServicePrincipal \
+  --role "Azure Kubernetes Service RBAC Admin" \
+  --scope "${AKS_ID}/namespaces/<namespace this pipeline deploys to>"
+```
+
+> **RBAC Admin, not RBAC Writer.** Confirmed against a live cluster: RBAC Writer's
+> dataActions are an explicit allow-list of common resource types that does not include
+> `secrets-store.csi.x-k8s.io/secretproviderclasses`, so `kubectl apply -f k8s/` fails on
+> `secretproviderclass.yaml` with `does not have access to the resource in Azure` — even
+> though the Kubernetes-level `edit` role it maps to does cover that resource. RBAC Admin's
+> single wildcard dataAction covers every resource type, and the scope still confines it to
+> one namespace.
+
+> **Where to find the object id:** open the service connection → **Manage Service Principal**
+> — this opens the app registration in Entra. Use the **Object ID** shown there, not the
+> Application (client) ID. Role assignments need the object id.
+
 ## The one thing worth noticing
 
 ```yaml
@@ -14,58 +59,9 @@ That service connection is the same mechanism you wired up in **Lab 4**. A workl
 who it is and is handed a short-lived token, so no password or service-principal secret is
 stored anywhere. In Lab 4 the workload was a pod; here it is a pipeline run. Same idea twice.
 
-The value of `azureSubscription` is the service connection's **name**, not a subscription id.
-Rename the connection and every pipeline referring to it breaks.
-
-## Creating that connection by hand
-
-Azure DevOps offers to create it automatically, and the offer costs more than it looks: the
-person clicking it needs **Owner on the subscription**. That is more than a team confined to
-its own resource groups should ever hold. Created manually against an identity the platform
-team already owns, nobody needs Owner at all.
-
-Three steps, and **the order is not negotiable**:
-
-1. **Platform team creates a user-assigned managed identity.** Not an app registration — a
-   tenant that blocks app registration creation is the normal case, and a managed identity
-   sidesteps that Entra permission entirely.
-2. **You create the service connection.** Type *Azure Resource Manager*, authentication
-   *Workload identity federation (manual)*. There is no field for a secret; that is the
-   point. It saves as a **draft** and hands you an **Issuer** and a **Subject identifier**.
-3. **Platform team adds the federated credential** to that identity — scenario *Other
-   issuer*, type *Explicit subject identifier* — pasting both values. Then *Finish setup* →
-   *Verify and save*.
-
-Step 3 cannot happen before step 2. The subject identifier contains the service connection's
-own id, which does not exist until the connection does. Delete and recreate the connection
-and that id changes, and the federated credential stops matching without anyone touching it.
-
-Copy the subject identifier. Never retype it.
-
-### Who needs which permission
-
-The two sides are separate systems, and a person who can edit the connection in Azure DevOps
-still cannot add the credential in Azure.
-
-| Where | Permission |
-|---|---|
-| Azure DevOps | **Creator** or **Administrator** on service connections, at *Project settings > Pipelines > Service connections > Security*. Whoever creates one becomes its Administrator |
-| The managed identity | **Managed Identity Contributor**, to add a federated credential |
-| The target resources | whoever assigns the roles below needs `Microsoft.Authorization/roleAssignments/write` — Owner, User Access Administrator or Role Based Access Control Administrator |
-
-### The roles the identity itself ends up holding
-
-| Role | Scope |
-|---|---|
-| Reader | the subscription — *Verify* reads the subscription, and nothing else grants that |
-| AcrPush | the registry |
-| Azure Kubernetes Service Cluster User Role | the cluster — enough for `get-credentials`, not enough for `kubectl` |
-| Azure Kubernetes Service RBAC Writer | `.../managedClusters/<cluster>/namespaces/<ns>` — one namespace, not the cluster |
-
-A namespace-scoped assignment cannot be made in the portal; the cluster's IAM blade offers no
-scope below the cluster. Use `az role assignment create --scope` with the identity's **object
-id**. The client id goes in the service connection and nowhere near a role assignment — they
-sit next to each other on the same portal blade and look identical.
+If your project still has a service connection created the old way — with a client secret —
+that is the one thing worth changing. In the service connection's settings, **Convert** it to
+workload identity federation.
 
 ## The line people forget
 
@@ -79,57 +75,6 @@ kubelogin convert-kubeconfig -l azurepipelines
 
 Without it, `kubectl` hangs waiting for a sign-in that will never come. The `azurepipelines`
 mode reuses the service connection, so there is still nothing to store.
-
-## Prove it with four lines before trusting the YAML
-
-```yaml
-  - task: AzureCLI@2
-    inputs:
-      azureSubscription: ptg-aks-wif
-      scriptType: bash
-      scriptLocation: inlineScript
-      inlineScript: |
-        az account show -o table
-        az aks get-credentials -g $(RG) -n $(CLUSTER) --overwrite-existing
-        kubelogin convert-kubeconfig -l azurepipelines
-        kubectl get pods -n $(NAMESPACE)
-```
-
-Each line fails differently, which is the only reason to run them separately.
-
-## When the token is refused
-
-The first of these is authentication, the second is authorization, and getting the second
-means the first already worked.
-
-| What the pipeline prints | What it means | Fix |
-|---|---|---|
-| `AADSTS700213: No matching federated identity record found for presented assertion subject` | Entra holds no federated credential whose subject matches the assertion | The error prints the subject it presented — put exactly that on the identity. A subject beginning `/eid1/` pairs only with the issuer `https://login.microsoftonline.com/<tenant-id>/v2.0`, and the audience must be `api://AzureADTokenExchange` |
-| `AuthorizationFailed` on `Microsoft.Resources/subscriptions/read` | Federation worked; the identity holds no role | Reader on the subscription. Then wait two minutes — role assignments propagate, and retrying at once shows the same error |
-| `az account show` works, `kubectl` hangs | `kubelogin convert-kubeconfig` is missing | above |
-| `kubectl` returns 403 | Cluster User Role granted, Kubernetes RBAC not | the namespace-scoped RBAC Writer assignment |
-
-If assigning Reader on the subscription is refused by whoever owns it, roles at resource
-group scope still let every task in the pipeline run — but *Verify* fails permanently, since
-it reads the subscription and nothing else. Save without verifying and prove it with the four
-lines above instead.
-
-## Converting an old one
-
-If your project still has a service connection created the old way — with a client secret —
-that is the one thing worth changing. In the service connection's settings, **Convert** it to
-workload identity federation.
-
-Two limits the button does not mention. It only works on connections **Azure DevOps created
-itself**, because it will not modify credentials on an identity it does not own — so a
-connection built manually against your own managed identity, which is what this page
-recommends, cannot be converted. And it only works while a **single project** uses the
-connection; shared ones have to be replaced. A conversion can be reverted for seven days.
-
-Two dates worth knowing. The old issuer `https://vstoken.dev.azure.com` retires on **1 July
-2027**; anything created now already defaults to the Entra issuer, so this is a problem for
-existing connections only. And a connection left unused for **100 days** is disabled
-automatically, which catches pipelines that deploy rarely.
 
 ## Where it runs matters
 

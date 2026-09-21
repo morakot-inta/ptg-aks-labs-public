@@ -6,8 +6,8 @@ For the platform team. Every block below is meant to be pasted into
 Cloud Shell is the easiest place to run this: `az` and `kubectl` are already there and
 always current, so the `azure-cli 2.86.0` requirement in Step 2 takes care of itself.
 
-Two steps need files from this repository — building the image in Step 4, and the
-deliberately broken manifest in Step 9. Clone it first and stay in the root:
+One step needs files from this repository — building the image in Step 3. Clone it first
+and stay in the root:
 
 ```bash
 git clone <this repository> && cd <repository>
@@ -30,8 +30,8 @@ STORAGE="staktraining"            # 3-24 chars, lowercase, globally unique
 CONTAINER="lab-data"
 IDENTITY="id-aks-lab"
 GATEWAY_NS="gateway-system"
-GATEWAY_NAME="shared-gateway"
-DOMAIN="lab.example.com"
+GATEWAY_NAME="ptg-shared-gateway"
+DOMAIN="lab.ptg.local"
 SERVICE_ACCOUNT="orders-api"
 
 az account set --subscription "$SUBSCRIPTION"
@@ -71,7 +71,7 @@ What you want to see:
 
 ```bash
 az aks enable-addons -g "$RG" -n "$CLUSTER" \
-  --addons azure-policy,azure-keyvault-secrets-provider
+  --addons azure-keyvault-secrets-provider
 
 az aks update -g "$RG" -n "$CLUSTER" --enable-gateway-api
 ```
@@ -79,7 +79,7 @@ az aks update -g "$RG" -n "$CLUSTER" --enable-gateway-api
 > The Key Vault add-on creates its own managed identity,
 > `azurekeyvaultsecretsprovider-<cluster>`, in the `MC_` node resource group and attaches it
 > to the node pool VMSS. **That is the identity Lab 3 uses** — not `id-aks-lab`, which is
-> created in step 6 for Lab 4. Step 5 gives it access to the vault.
+> created in step 5 for Lab 4. Step 4 gives it access to the vault.
 
 Then connect and confirm:
 
@@ -90,63 +90,27 @@ kubectl get gatewayclass                     # expect "istio", ACCEPTED=True
 
 ---
 
-## Step 3 · Assign the four policies Lab 2 depends on
-
-The add-on on its own enforces nothing. These four are what refuse the deliberately broken
-manifest in Lab 2.
-
-```bash
-RG_SCOPE=$(az group show -n "$RG" --query id -o tsv)
-ACR_LOGIN=$(az acr show -n "$ACR" --query loginServer -o tsv)
-
-pol() { az policy definition list --query "[?displayName=='$1'].id | [0]" -o tsv; }
-
-az policy assignment create --name lab-allowed-images \
-  --policy "$(pol 'Kubernetes cluster containers should only use allowed images')" \
-  --scope "$RG_SCOPE" \
-  --params "{\"effect\":{\"value\":\"deny\"},\"allowedContainerImagesRegex\":{\"value\":\"^${ACR_LOGIN}/.+$\"}}"
-
-az policy assignment create --name lab-resource-limits \
-  --policy "$(pol 'Kubernetes cluster containers CPU and memory resource limits should not exceed the specified limits')" \
-  --scope "$RG_SCOPE" \
-  --params '{"effect":{"value":"deny"},"cpuLimit":{"value":"2"},"memoryLimit":{"value":"2Gi"}}'
-
-az policy assignment create --name lab-nonroot \
-  --policy "$(pol 'Kubernetes cluster pods and containers should only run with approved user and group IDs')" \
-  --scope "$RG_SCOPE" \
-  --params '{"effect":{"value":"deny"},"runAsUserRule":{"value":"MustRunAsNonRoot"},"runAsGroupRule":{"value":"RunAsAny"},"supplementalGroupsRule":{"value":"RunAsAny"},"fsGroupRule":{"value":"RunAsAny"}}'
-
-az policy assignment create --name lab-probes \
-  --policy "$(pol 'Ensure cluster containers have readiness or liveness probes configured')" \
-  --scope "$RG_SCOPE" \
-  --params '{"effect":{"value":"deny"},"probes":{"value":["livenessProbe","readinessProbe"]}}'
-```
-
-> **Wait 15 to 20 minutes before testing.** Gatekeeper pulls policy on a schedule, so the
-> rules do not bite immediately. Checking too early gives a false failure.
+## Step 3 · Build the image
 
 > **Check what kind of subscription this is before promising Lab 1.** ACR task runs are
 > currently paused on subscriptions running from Azure free credits, and `az acr build`
 > fails outright with `TasksOperationsNotAllowed`. A free trial, Azure for Students or
 > sponsorship subscription cannot run Lab 1 at all, whatever the registry SKU.
 
----
-
-## Step 4 · Build the image
-
 ```bash
 # from a clone of this repository. Attendees build their own tag in Lab 1 —
-# this one is the fallback for anyone whose build fails on the day, and it is
-# what step 9 uses to prove the policies are in force.
+# this one is the fallback for anyone whose build fails on the day.
 az acr build --registry "$ACR" --image orders-api:v1 sample-app/
 
 # let the cluster pull it without any imagePullSecret
 az aks update -g "$RG" -n "$CLUSTER" --attach-acr "$ACR"
+
+ACR_LOGIN=$(az acr show -n "$ACR" --query loginServer -o tsv)
 ```
 
 ---
 
-## Step 5 · Key Vault and storage
+## Step 4 · Key Vault and storage
 
 ```bash
 # --- Key Vault, and the secret Lab 3 mounts
@@ -191,7 +155,7 @@ az storage blob upload --account-name "$STORAGE" -c "$CONTAINER" -n hello.txt \
 
 ---
 
-## Step 6 · The managed identity the pods will use
+## Step 5 · The managed identity the pods will use
 
 ```bash
 az identity create -g "$RG" -n "$IDENTITY" -l "$LOCATION"
@@ -215,7 +179,7 @@ az role assignment create --assignee-object-id "$IDENTITY_PRINCIPAL" \
 
 ---
 
-## Step 7 · The shared Gateway for Step 5
+## Step 6 · The shared Gateway for Step 5
 
 ```bash
 kubectl create namespace "$GATEWAY_NS" --dry-run=client -o yaml | kubectl apply -f -
@@ -246,7 +210,7 @@ kubectl -n "$GATEWAY_NS" get gateway "$GATEWAY_NAME"
 
 ---
 
-## Step 8 · A credential per attendee — but not their namespace
+## Step 7 · A credential per attendee — but not their namespace
 
 Attendees create their own namespace in Lab 0, so this step does not create it for them.
 It creates everything that has to exist *before* that namespace does.
@@ -314,9 +278,18 @@ for row in $ATTENDEES; do
     --role "AKS Lab Namespace Creator" --scope "$AKS_ID" -o none
 
   # lets them edit things, in their own namespace only. The scope is an Azure
-  # string, so it is assignable before the namespace itself exists
+  # string, so it is assignable before the namespace itself exists.
+  #
+  # RBAC Admin, not RBAC Writer: RBAC Writer's dataActions are an explicit
+  # allow-list of common resource types and it does NOT include
+  # secrets-store.csi.x-k8s.io/secretproviderclasses, even though the
+  # Kubernetes-level "edit" ClusterRole it maps to does. Lab 3's
+  # `kubectl apply -f k8s/secretproviderclass.yaml` is rejected under Writer
+  # with "User does not have access to the resource in Azure" -- confirmed
+  # against a live cluster, not theoretical. RBAC Admin's single wildcard
+  # dataAction covers every resource type, still scoped to just this namespace
   az role assignment create --assignee "$UPN" \
-    --role "Azure Kubernetes Service RBAC Writer" \
+    --role "Azure Kubernetes Service RBAC Admin" \
     --scope "${AKS_ID}/namespaces/${NS}" -o none
 
   # lets them queue a build in Lab 1. NOT AcrPush: that is data-plane only
@@ -336,12 +309,12 @@ done
 > Lab 4 for reasons nobody can debug in the room. Put the name on the card.
 
 > **One managed identity holds at most 20 federated credentials.** For more than 20
-> attendees, create a second identity (`IDENTITY="id-aks-lab-2"`, repeat Step 6, which
-> refreshes `$IDENTITY_CLIENT`) and run this block again with the remaining names. Step 10
+> attendees, create a second identity (`IDENTITY="id-aks-lab-2"`, repeat Step 5, which
+> refreshes `$IDENTITY_CLIENT`) and run this block again with the remaining names. Step 9
 > reads `/tmp/attendee-cards.txt`, so each card gets the client id that actually matches its
 > namespace — the two groups do not share one.
 
-> **Starting over?** `rm -f /tmp/attendee-cards.txt` before re-running, or step 10 prints
+> **Starting over?** `rm -f /tmp/attendee-cards.txt` before re-running, or step 9 prints
 > duplicate cards.
 
 > **Run this at least an hour before the session.** A token requested before the credential
@@ -349,19 +322,10 @@ done
 
 ---
 
-## Step 9 · Prove it works
+## Step 8 · Prove it works
 
-Do not assume — the two failures that matter are both invisible to a resource listing.
-
-```bash
-kubectl create namespace preflight --dry-run=client -o yaml | kubectl apply -f -
-
-# this manifest breaks four rules. It MUST be rejected.
-kubectl -n preflight apply -f lab2-deployment/deployment-broken.yaml
-```
-
-**If that manifest is accepted, stop.** The policies are not in force, and Lab 2 has no
-lesson left in it. Wait longer, or check Step 3.
+Do not assume — the resource existing is not the same as the specific image tag or blob
+existing, and that difference is invisible to a plain resource listing.
 
 ```bash
 # the image is where the labs expect
@@ -370,13 +334,11 @@ az acr repository show --name "$ACR" --image orders-api:v1 -o none && echo "imag
 # the file Lab 4 reads
 az storage blob show --account-name "$STORAGE" -c "$CONTAINER" -n hello.txt \
   --auth-mode login -o none && echo "hello.txt OK"
-
-kubectl delete namespace preflight
 ```
 
 ---
 
-## Step 10 · The attendee cards
+## Step 9 · The attendee cards
 
 One card per attendee. Lab 0 step 2 has them paste the block into `~/aks-lab.env` and
 source it, so print the block itself rather than a table — a value that is retyped is a
