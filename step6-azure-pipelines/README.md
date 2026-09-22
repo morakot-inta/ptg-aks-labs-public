@@ -1,78 +1,83 @@
 # Deploying from Azure Pipelines
 
-**Create the new project for testing pipeline first**
+**Create a new project for testing the pipeline first.**
 
-## Config Service Connect
-1. Create identity for azure devop pipeline
+## Configure the service connection
+
+1. Create an identity for the Azure DevOps pipeline
+
 ```bash
 az identity create \
   --name id-ado-aks \
-  --resource-group $RG\
+  --resource-group $RG \
   --location southeastasia
 ```
 
 2. **Azure DevOps → Project Settings → Service connections → New service connection → Azure
    Resource Manager**
-   New Azure Service Connection
-   - Identity type : App registration or managed identity (manual)
-   - Credential : Workload identity federation
-   - Service Connection Name : <Your Service Connect Name>
-   - Directory (tenant) ID : <Your Tenant ID>
 
-and click next , and file the app registration details for Step 2
-copy Issue and Subject identifier from text box
-- Scope Leve : subscription
-- Subscription ID : <Your Subscription ID>
-- Subsription Name : <Your Subscription Name>
-- Application (client) ID : <Your manage identity client id(id-ado-aks)>
+   - Identity type: App registration or managed identity (manual)
+   - Credential: Workload identity federation
+   - Service connection name: `<your service connection name>`
+   - Directory (tenant) ID: `<your tenant ID>`
 
-3. go back to the your manage identity (id-ado-aks) , create the federated credentials, click add the new credential
-- Federated credential scenario : 
-- Issuer URL : <The Issuer from Azure DevOps step2>
-- Subject identifier : <The identifier from Azure DevOps step2
-- Credential Name : <Your credential Name e.g. fic-ado-pipeline>
+   Click **Next**, then fill in the app registration details:
 
-4. Assige `reader role` to subscription level for manage identity (id-ado-aks)
+   - Scope level: Subscription
+   - Subscription ID: `<your subscription ID>`
+   - Subscription name: `<your subscription name>`
+   - Application (client) ID: `<the client ID of your managed identity, id-ado-aks>`
 
-5. goback to the azure Devop create service connection and then click on the verify and save buttom.
+   Copy the **Issuer** and the **Subject identifier** from the text boxes — you need both in
+   step 3. Leave this page open.
 
-6. Assign mmanage identity(id-ado-aks) for `Azure Kubernetes Service RBAC Admin` to AKS custer
-```
+3. Go back to your managed identity (`id-ado-aks`) and create the federated credential.
+   Click **Add credential**:
+
+   - Federated credential scenario: Other issuer
+   - Issuer URL: `<the Issuer from Azure DevOps, step 2>`
+   - Subject identifier: `<the Subject identifier from Azure DevOps, step 2>`
+   - Credential name: `<your credential name, e.g. fic-ado-pipeline>`
+
+4. Assign the **Reader** role at subscription level to the managed identity (`id-ado-aks`).
+
+5. Go back to the service connection in Azure DevOps and click **Verify and save**.
+
+6. Assign the cluster roles to the managed identity (`id-ado-aks`):
+
+```bash
 az role assignment create \
   --assignee $PRINCIPAL_ID \
   --role "Azure Kubernetes Service Cluster User Role" \
-  --scope $AKS_RESOUCE_ID
+  --scope $AKS_RESOURCE_ID
 
 az role assignment create \
   --assignee $PRINCIPAL_ID \
   --role "Azure Kubernetes Service RBAC Cluster Admin" \
-  --scope $AKS_RESOUCE_ID
+  --scope $AKS_RESOURCE_ID
 ```
+
 ---
-## Pipeline config
-1. push the lab code to the new repo
-2. create variable group
 
-group name : aks-deploy
+## Pipeline configuration
 
-Variable
--|-
-CLUSTER|<Your Cluster Name>
-NAMESPACE|<Your name space>
-RESOURCE_GROUP|<Your ReourceGroup>
+1. Push the lab code to the new repository.
 
-3. change the service connect name in the pipeline 
-```
+2. Create a variable group named `aks-deploy`:
+
+| Variable | Value |
+|---|---|
+| `CLUSTER` | `<your cluster name>` |
+| `NAMESPACE` | `<your namespace>` |
+| `RESOURCE_GROUP` | `<your resource group>` |
+
+3. Change the service connection name in the pipeline:
+
+```yaml
   - task: AzureCLI@2
     displayName: Deploy to AKS
     env:
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
     inputs:
-      azureSubscription: test #<- change this
+      azureSubscription: test   # <- change this
 ```
-
-
-
-
-
-
