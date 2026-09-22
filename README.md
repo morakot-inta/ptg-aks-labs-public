@@ -23,3 +23,5 @@ https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?view=azure
 https://kubernetes.io/docs/tasks/tools/install-kubectl-windows/
 
 https://jqlang.org/download/
+
+https://azure.github.io/kubelogin/install.html#using-azure-cli
