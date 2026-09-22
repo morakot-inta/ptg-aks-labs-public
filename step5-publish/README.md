@@ -70,6 +70,11 @@ Look for `"type": "Accepted"` and `"status": "True"`.
 
 From inside your own pod — `curl` is in the image, so nothing extra is pulled:
 
+Get Gateway IP Address
+```bash
+GW=$(kubectl get gateway -n gateway-system -o jsonpath='{.items[*].status.addresses[*].value}{"\n"}')
+```
+
 ```bash
 POD=$(kubectl get pod -l app=orders-api --sort-by=.metadata.creationTimestamp -o name | tail -1)
 kubectl exec $POD -- curl -s -i --resolve "$NAMESPACE.local:80:$GW" http://$NAMESPACE.local/healthz
