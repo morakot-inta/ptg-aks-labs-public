@@ -1,8 +1,11 @@
 # Deploying from Azure Pipelines
 
-1. create identity for azure devop pipeline
+1. Create identity for azure devop pipeline
 ```bash
-
+az identity create \
+  --name id-ado-aks \
+  --resource-group $RG\
+  --location southeastasia
 ```
 
 2. **Azure DevOps → Project Settings → Service connections → New service connection → Azure
