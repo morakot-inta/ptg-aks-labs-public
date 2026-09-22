@@ -15,3 +15,11 @@ Everything you need to copy and paste during the session. Five labs, one folder 
 | 2 | [Deploy it](lab2-deployment/) | 45 min | `kubectl get deploy` shows `READY 2/2` |
 | 3 | [Mount a secret from Key Vault](lab3-secret/) | 15 min | you can `cat` the secret inside the pod |
 | 4 | [Wire up Workload Identity](lab4-workload-identity/) | 45 min | you write a file to Azure Storage and read it back, with no key anywhere |
+
+---
+
+https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?view=azure-cli-latest&pivots=winget
+
+https://kubernetes.io/docs/tasks/tools/install-kubectl-windows/
+
+https://jqlang.org/download/
