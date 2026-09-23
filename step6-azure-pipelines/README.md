@@ -48,7 +48,6 @@ az role assignment create \
 | Variable | Value |
 |---|---|
 | `CLUSTER` | `<your cluster name>` |
-| `NAMESPACE` | `<your namespace>` |
 | `RESOURCE_GROUP` | `<your resource group>` |
 
 ---
