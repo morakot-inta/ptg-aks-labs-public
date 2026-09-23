@@ -20,8 +20,14 @@ az storage container create \
 ---
 ## 2. Assige Identiy
 ```bash
+# Storage Blob Data Reader
+PRINCIPAL_ID=$(az identity show -g $RG -n $IDENTITY_NAME --query principalId -o tsv
 
-Storage Blob Data Reader
+az role assignment create \
+  --role "Storage Blob Data Reader" \
+  --assignee $PRINCIPAL_ID \
+  --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.Storage/storageAccounts/$STORAGE_ACCOUNT_NAME"
+
 ```
 ---
 
