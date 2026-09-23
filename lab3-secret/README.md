@@ -1,12 +1,16 @@
 # Lab 3 — Mount a secret from Key Vault · 15 minutes
 
-## 1. Create Keyvault resource 
+1. Create Keyvault resource 
 ```bash
 export KEYVALUT_NAME="YOUR_KEYVAULT_NAME"
 az keyvault create \
   --name $KEYVALUT_NAME \
   --resource-group $RG \
   --location southeastasia
+```
+
+2. create manage identity
+```bash
 ```
 
 2. assine role to keyvault
