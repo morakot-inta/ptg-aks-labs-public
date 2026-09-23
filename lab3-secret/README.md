@@ -64,10 +64,14 @@ Edit `k8s/secretproviderclass.yaml` and fill in three values from your card —
 kubectl apply -f k8s/secretproviderclass.yaml
 ```
 
-## 5. Add a volume to your Deployment
+## 5. Add a sa, volume and month it to your Deployment
 
-Create 
+**ADD 1 - serviceAccountName , at `spec.template.spec.serviceAccountName` **
+```yaml
+      serviceAccountName: orders-api
+```
 
+**ADD 2 - secret as the volume , at `spec.template.spec.volums` **
 ```yaml
       volumes:              # ← ADD THIS BLOCK
       - name: secrets
@@ -79,19 +83,12 @@ Create
 ```
 
 **ADD 2 — the mount, at `spec.template.spec.containers[0].volumeMounts`**
-
-Inside the container, alongside `ports` and `resources`:
-
 ```yaml
         volumeMounts:       # ← ADD THIS BLOCK
         - name: secrets
           mountPath: /mnt/secrets-store
           readOnly: true
 ```
-
-`name: secrets` has to match in both — that is what joins the mount to the volume.
-
-`lab3-secret/solution/deployment.yaml` has the exact indentation if you want to compare.
 
 ```bash
 kubectl apply -f k8s/deployment.yaml
