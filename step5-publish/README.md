@@ -43,17 +43,6 @@ refused by policy — nothing you deploy gets its own public address.
 
 ## 2. An HTTPRoute
 
-Edit one line in `k8s/httproute.yaml`, at `spec.hostnames[0]`:
-
-```yaml
-spec:
-  parentRefs:                       # already there — the shared gateway
-  - name: ptg-shared-gateway
-    namespace: gateway-system
-  hostnames:
-  - "order-api.local"     # ← this line
-```
-
 ```bash
 kubectl apply -f k8s/httproute.yaml
 ```
