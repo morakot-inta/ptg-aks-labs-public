@@ -11,8 +11,8 @@ az keyvault create \
 ```
 az role assignment create \
   --role "Key Vault Administrator" \
-  --assignee <user-email-or-object-id> \
-  --scope "/subscriptions/<subscription-id>/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KEYVALUT_NAME"
+  --assignee <CSI_Driver-object-id> \
+  --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KEYVALUT_NAME"
 ```
 and create secret object 
 ```bash
