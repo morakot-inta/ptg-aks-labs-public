@@ -15,8 +15,9 @@ CLIENT_ID=$(az aks show \
   --query identityProfile.kubeletidentity.clientId \
   --output tsv)
 
+# get , list only if full access pls use Key Vault Administrator 
 az role assignment create \
-  --role "Key Vault Secrets User"  # get , list only if full access pls use Key Vault Administrator \
+  --role "Key Vault Secrets User" \
   --assignee $CLIENT_ID \
   --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KEYVALUT_NAME"
 ```
