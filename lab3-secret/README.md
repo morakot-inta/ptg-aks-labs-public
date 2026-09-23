@@ -30,7 +30,7 @@ az role assignment create \
 # Key Vault Administrator --> manage RBAC
 MY_OBJ_ID=$(az ad signed-in-user show --query id --output tsv)
 az role assignment create \
-  --role "Key Vault Secrets Administrator" \
+  --role "Key Vault Administrator" \
   --assignee $MY_OBJ_ID \
   --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KEYVALUT_NAME"
 ```
