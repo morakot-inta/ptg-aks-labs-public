@@ -16,15 +16,15 @@ A browser window opens. Sign in with your PTG account.
 
 Set subscription id
 ```bash
-export SUBSCRIPTION_ID=""
+export SUBSCRIPTION_ID="YOUR_SUBSCRIPTION_ID"
 az account set --subscription $SUBSCRIPTION_ID
 ```
 
 ## 2. Point kubectl at the cluster
 
 ```bash
-export RG=""
-export CLUSTER=""
+export RG="YOUR_RESOURCE_GROUP"
+export CLUSTER="YOUR_AKS_CLUSTER"
 az aks get-credentials --resource-group "$RG" --name "$CLUSTER"
 ```
 
