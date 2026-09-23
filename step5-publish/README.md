@@ -38,9 +38,6 @@ kubectl -n gateway-system get gateway ptg-shared-gateway
 kubectl apply -f k8s/service.yaml
 ```
 
-Note the type: `ClusterIP`. A Service of type `LoadBalancer` asking for a public address is
-refused by policy — nothing you deploy gets its own public address.
-
 ## 2. An HTTPRoute
 
 ```bash
