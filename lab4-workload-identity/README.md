@@ -3,7 +3,7 @@
 ## 1. Create Storage account
 
 ```bash
-export STORAGE_ACCOUNT_NAME=""
+export STORAGE_ACCOUNT_NAME="ํYOUR_STORAGE_ACCOUNT_NAME"
 ```
 ```bash
 az storage account create \
