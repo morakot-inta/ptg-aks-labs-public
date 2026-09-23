@@ -30,16 +30,12 @@ az identity federated-credential create \
 
 2. assine role to keyvault
 ```bash
-CLIENT_ID=$(az aks show \
-  --resource-group "$RG" \
-  --name "$CLUSTER" \
-  --query identityProfile.kubeletidentity.clientId \
-  --output tsv)
+PRINCIPAL_ID=$(az identity show -g $RG -n $IDENTITY_NAME --query principalId -o tsv
 
 # "Key Vault Secrets User" get , list only if full access pls use "Key Vault Administrator" 
 az role assignment create \
   --role "Key Vault Secrets User" \
-  --assignee $CLIENT_ID \
+  --assignee $PRINCIPAL_ID \
   --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KEYVALUT_NAME"
 
 # Key Vault Secrets User --> get,list
