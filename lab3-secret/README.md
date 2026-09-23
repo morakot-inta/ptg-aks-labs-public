@@ -1,6 +1,6 @@
 # Lab 3 — Mount a secret from Key Vault · 15 minutes
 
-1. Create Keyvault resource 
+## 1. Create Keyvault resource 
 ```bash
 export KEYVALUT_NAME="YOUR_KEYVAULT_NAME"
 az keyvault create \
@@ -9,7 +9,7 @@ az keyvault create \
   --location southeastasia
 ```
 
-2. create manage identity and federated
+## 2. create manage identity and federated
 ```bash
 export IDENTITY_NAME="IDENTITY_NAME"
 az identity create -g $RG -n $IDENTITY_NAME -l southeastasia
@@ -25,10 +25,9 @@ az identity federated-credential create \
   --issuer "$OIDC" \
   --subject system:serviceaccount:$NAMESPACE:orders-api \
   --audience api://AzureADTokenExchange
-
 ```
 
-2. assine role to keyvault
+## 2. assine role to keyvault
 ```bash
 PRINCIPAL_ID=$(az identity show -g $RG -n $IDENTITY_NAME --query principalId -o tsv
 
@@ -47,7 +46,8 @@ az role assignment create \
   --assignee $MY_OBJ_ID \
   --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KEYVALUT_NAME"
 ```
-3. create secret object 
+
+## 3. create secret object 
 ```bash
 az keyvault secret set \
   --vault-name $KEYVALUT_NAME \
@@ -55,24 +55,18 @@ az keyvault secret set \
   --value "secret"
 ```
 
-4. Create the SecretProviderClass
+## 4. Create the SecretProviderClass
 
 Edit `k8s/secretproviderclass.yaml` and fill in three values from your card —
-`<CSI_IDENTITY>`, `<KEY-VAULT>` and `<TENANT-ID>` — then:
+`<CLIENT_IDENTITY>`, `<KEY-VAULT>` and `<TENANT-ID>` — then:
 
 ```bash
 kubectl apply -f k8s/secretproviderclass.yaml
 ```
 
-## 2. Add a volume to your Deployment
+## 5. Add a volume to your Deployment
 
-Two blocks go into `k8s/deployment.yaml`, the file you deployed in Lab 2, **and they go in
-two different places**. Missing the second one is the commonest mistake in this lab: the pod
-starts perfectly and the secret simply is not there.
-
-**ADD 1 — the volume, at `spec.template.spec.volumes`**
-
-A sibling of `containers`, at the same indentation as it:
+Create 
 
 ```yaml
       volumes:              # ← ADD THIS BLOCK
