@@ -27,7 +27,7 @@ az identity create \
    - Managed Identity: id-ado-pipeline
    - Service connection name: sc-aks
 
-4. Assign the cluster roles to the managed identity (`id-ado-pipeline`):
+3. Assign the cluster roles to the managed identity (`id-ado-pipeline`):
 
 ```bash
 # Storage Blob Data Reader
@@ -42,17 +42,20 @@ az role assignment create \
 ```
 
 ---
-
-## Pipeline configuration
-
-1. Push the lab code to the new repository.
-
-2. Create a variable group named `aks-deploy`:
+4. Create a variable group named `aks-deploy`:
 
 | Variable | Value |
 |---|---|
 | `CLUSTER` | `<your cluster name>` |
 | `NAMESPACE` | `<your namespace>` |
 | `RESOURCE_GROUP` | `<your resource group>` |
+
+---
+
+5. Commit your code update and push to AzureDevOp.
+```bash
+git commit -am 'update'
+git push origin main
+```
 
 3. RUN Pipeline on AzureDevOps
