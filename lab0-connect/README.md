@@ -19,6 +19,7 @@ Set subscription id
 export SUBSCRIPTION_ID=""
 ```
 ```bash
+export SUBSCRIPTION_ID=""
 az account set --subscription $SUBSCRIPTION_ID
 ```
 
