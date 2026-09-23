@@ -32,7 +32,7 @@ az role assignment create \
   --assignee $MY_OBJ_ID \
   --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KEYVALUT_NAME"
 ```
-and create secret object 
+3. create secret object 
 ```bash
 az keyvault secret set \
   --vault-name $KEYVALUT_NAME \
@@ -40,9 +40,7 @@ az keyvault secret set \
   --value "secret"
 ```
 
----
-
-## 1. Create the SecretProviderClass
+4. Create the SecretProviderClass
 
 Edit `k8s/secretproviderclass.yaml` and fill in three values from your card —
 `<CSI_IDENTITY>`, `<KEY-VAULT>` and `<TENANT-ID>` — then:
