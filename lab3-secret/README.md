@@ -66,12 +66,16 @@ kubectl apply -f k8s/secretproviderclass.yaml
 
 ## 5. Add a sa, volume and month it to your Deployment
 
-**ADD 1 - serviceAccountName , at `spec.template.spec.serviceAccountName` **
+**ADD 1 - enable workload identity, at `spec.template.metadata.labels.azure.workload.identity/user`
+```yaml
+        azure.workload.identity/user: "true"
+```
+**ADD 2 - serviceAccountName , at `spec.template.spec.serviceAccountName` **
 ```yaml
       serviceAccountName: orders-api
 ```
 
-**ADD 2 - secret as the volume , at `spec.template.spec.volums` **
+**ADD 3 - secret as the volume , at `spec.template.spec.volums` **
 ```yaml
       volumes:              # ← ADD THIS BLOCK
       - name: secrets
@@ -82,7 +86,7 @@ kubectl apply -f k8s/secretproviderclass.yaml
             secretProviderClass: orders-api-spc
 ```
 
-**ADD 2 — the mount, at `spec.template.spec.containers[0].volumeMounts`**
+**ADD 4 — the mount the secret, at `spec.template.spec.containers[0].volumeMounts`**
 ```yaml
         volumeMounts:       # ← ADD THIS BLOCK
         - name: secrets
@@ -90,19 +94,18 @@ kubectl apply -f k8s/secretproviderclass.yaml
           readOnly: true
 ```
 
+## 5. apply and testing
+
+- apply 
 ```bash
 kubectl apply -f k8s/deployment.yaml
-kubectl rollout status deploy/orders-api
 ```
-
-## 3. Read it from inside the pod
-
+- testing
 ```bash
 POD=$(kubectl get pod -l app=orders-api --sort-by=.metadata.creationTimestamp -o name | tail -1)
 kubectl exec $POD -- cat /mnt/secrets-store/db-password
 ```
-
-or call the api 
+- call the api 
 ```bash
 kubectl exec $POD -- curl -s localhost:8080/secret
 ```
