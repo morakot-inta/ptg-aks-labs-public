@@ -11,8 +11,7 @@ az storage account create \
   --resource-group $RG \
   --location southeastasia \
   --sku Standard_LRS
-```
-```bash
+
 az storage container create \
   --name lab-data \
   --account-name $STORAGE_ACCOUNT_NAME \
