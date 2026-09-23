@@ -9,7 +9,7 @@ az keyvault create \
   --location southeastasia
 ```
 ```
-KEYVAULT_ID=$(az aks show \
+CLIENT_ID=$(az aks show \
   --resource-group "$RG" \
   --name "$CLUSTER" \
   --query identityProfile.kubeletidentity.clientId \
@@ -17,7 +17,7 @@ KEYVAULT_ID=$(az aks show \
 
 az role assignment create \
   --role "Key Vault Administrator" \
-  --assignee $KEYVALUT_ID \
+  --assignee $CLIENT_ID \
   --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KEYVALUT_NAME"
 ```
 and create secret object 
