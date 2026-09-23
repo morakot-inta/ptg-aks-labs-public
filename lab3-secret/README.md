@@ -9,8 +9,22 @@ az keyvault create \
   --location southeastasia
 ```
 
-2. create manage identity
+2. create manage identity and federated
 ```bash
+IDENTITY=id-orders-api
+az identity create -g $RG -n $IDENTITY_NAME -l southeastasia
+```
+
+```
+OIDC=$(az aks show -g $RG -n $CLUSTER --query oidcIssuerProfile.issuerUrl -o tsv)
+
+# federated credential
+az identity federated-credential create \
+  --name fc-orders-api \
+  --identity-name $IDENTITY_NAME -g $RG \
+  --issuer "$OIDC" \
+  --subject system:serviceaccount:$NAMESPACE:orders-api \
+  --audience api://AzureADTokenExchange
 
 ```
 
