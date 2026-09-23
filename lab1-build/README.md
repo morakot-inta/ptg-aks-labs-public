@@ -19,7 +19,7 @@ az aks update --resource-group $RG --name $CLUSTER --attach-acr $ACR
 
 
 ```bash
-az acr build --registry "$ACR" --image "orders-api:$NAMESPACE" sample-app/
+az acr build --registry "$ACR" --image "order-api:poc-v1" sample-app/
 ```
 
 ## 2. Look at what you just pushed
@@ -29,5 +29,3 @@ az acr repository show-tags --name "$ACR" --repository orders-api --output table
 ```
 
 Your tag is in the list, alongside everyone else's.
-
-
