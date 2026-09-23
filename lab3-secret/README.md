@@ -60,9 +60,6 @@ starts perfectly and the secret simply is not there.
 A sibling of `containers`, at the same indentation as it:
 
 ```yaml
-spec:                       # ← Deployment spec
-  template:
-    spec:                   # ← pod spec
       volumes:              # ← ADD THIS BLOCK
       - name: secrets
         csi:
@@ -70,8 +67,6 @@ spec:                       # ← Deployment spec
           readOnly: true
           volumeAttributes:
             secretProviderClass: orders-api-spc
-      containers:           # ← already there
-      - name: orders-api
 ```
 
 **ADD 2 — the mount, at `spec.template.spec.containers[0].volumeMounts`**
@@ -79,9 +74,6 @@ spec:                       # ← Deployment spec
 Inside the container, alongside `ports` and `resources`:
 
 ```yaml
-      containers:
-      - name: orders-api
-        image: ...          # already there
         volumeMounts:       # ← ADD THIS BLOCK
         - name: secrets
           mountPath: /mnt/secrets-store
