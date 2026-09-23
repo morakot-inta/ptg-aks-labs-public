@@ -8,52 +8,31 @@
 
 ```bash
 az identity create \
-  --name id-ado-aks \
+  --name id-ado-pipeline \
   --resource-group $RG \
   --location southeastasia
 ```
+2. create Azure DevOps Organize and Repo
 
-2. **Azure DevOps → Project Settings → Service connections → New service connection → Azure
+**Azure DevOps → Project Settings → Service connections → New service connection → Azure
    Resource Manager**
 
-   - Identity type: App registration or managed identity (manual)
-   - Credential: Workload identity federation
-   - Service connection name: `<your service connection name>`
-   - Directory (tenant) ID: `<your tenant ID>`
+   - Identity type: managed identity
+   - Subscription for managed identity: <YOUR_SUBSCRIPTION>
+   - Resource group for managed identity: <RESOURCE_GROUP_MANAGED_IDENTITY>
+   - Managed Identity: id-ado-pipeline
+   - Service connection name: sc-aks
 
-   Click **Next**, then fill in the app registration details:
+3. Assign the **Reader** role at subscription level to the managed identity (`id-ado-aks`).
 
-   - Scope level: Subscription
-   - Subscription ID: `<your subscription ID>`
-   - Subscription name: `<your subscription name>`
-   - Application (client) ID: `<the client ID of your managed identity, id-ado-aks>`
-
-   Copy the **Issuer** and the **Subject identifier** from the text boxes — you need both in
-   step 3. Leave this page open.
-
-3. Go back to your managed identity (`id-ado-aks`) and create the federated credential.
-   Click **Add credential**:
-
-   - Federated credential scenario: Other issuer
-   - Issuer URL: `<the Issuer from Azure DevOps, step 2>`
-   - Subject identifier: `<the Subject identifier from Azure DevOps, step 2>`
-   - Credential name: `<your credential name, e.g. fic-ado-pipeline>`
-
-4. Assign the **Reader** role at subscription level to the managed identity (`id-ado-aks`).
-
-5. Go back to the service connection in Azure DevOps and click **Verify and save**.
-
-6. Assign the cluster roles to the managed identity (`id-ado-aks`):
+4. Assign the cluster roles to the managed identity (`id-ado-aks`):
 
 ```bash
+# Azure Kubernetes Service RBAC Writer, Deployments, Pods, Services, Ingress within namespace
+# Azure Kubernetes Service RBAC Admin, manage Custom Resource Definitions (CRD) and create namespace
 az role assignment create \
   --assignee $PRINCIPAL_ID \
-  --role "Azure Kubernetes Service Cluster User Role" \
-  --scope $AKS_RESOURCE_ID
-
-az role assignment create \
-  --assignee $PRINCIPAL_ID \
-  --role "Azure Kubernetes Service RBAC Cluster Admin" \
+  --role "Azure Kubernetes Service RBAC Writer" \
   --scope $AKS_RESOURCE_ID
 ```
 
