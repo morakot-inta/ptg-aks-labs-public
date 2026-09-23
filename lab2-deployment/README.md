@@ -60,14 +60,9 @@ orders-api   2/2     2            2
 container that never started has no logs to read:
 
 ```bash
-kubectl describe pod -l app=orders-api | sed -n '/Events:/,$p'
+kubectl describe pod -l app=orders-api
 ```
 
-| What the event says | What it means | What to do |
-|---|---|---|
-| `manifest unknown`, or `not found` | The registry is right, the tag is not | `az acr repository show-tags --name "$ACR" --repository orders-api -o table` — if your tag is missing, your Lab 1 build did not finish. Run it again, or use `orders-api:v1` |
-| `401 Unauthorized`, `authentication required` | The cluster is not allowed to pull from this registry | Not yours to fix, and it affects the whole room — tell the trainer |
-| `pull access denied, repository does not exist` on a `docker.io/...` image | The image line still points somewhere that is not your registry | Re-read step 1. The registry is the part before the first `/` |
-| `InvalidImageName` | A `<PLACEHOLDER>` or a `$VARIABLE` is still in the image line | Type the real values in |
-| `CreateContainerConfigError` | Almost always a volume or secret that does not exist yet | That is Lab 3 — you should not see it here |
-
+```bash
+kubectl logs deploy/orders-api
+```
