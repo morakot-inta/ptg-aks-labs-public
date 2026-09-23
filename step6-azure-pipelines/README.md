@@ -1,10 +1,13 @@
 # Deploying from Azure Pipelines
 
-**Create a new project for testing the pipeline first.**
+1. Create a new project for testing the pipeline
 
-## Configure the service connection
+2. Config Git Remote to AzureDevops
+```bash
+git remote set-url origin <NEW_URL>
+```
 
-1. Create an identity for the Azure DevOps pipeline
+3. Create an identity for the Azure DevOps pipeline
 
 ```bash
 az identity create \
@@ -12,7 +15,8 @@ az identity create \
   --resource-group $RG \
   --location southeastasia
 ```
-2. create Azure DevOps Organize and Repo
+
+2. create Service Connection on AzureDevOp
 
 **Azure DevOps → Project Settings → Service connections → New service connection → Azure
    Resource Manager**
@@ -23,9 +27,7 @@ az identity create \
    - Managed Identity: id-ado-pipeline
    - Service connection name: sc-aks
 
-3. Assign the **Reader** role at subscription level to the managed identity (`id-ado-aks`).
-
-4. Assign the cluster roles to the managed identity (`id-ado-aks`):
+4. Assign the cluster roles to the managed identity (`id-ado-pipeline`):
 
 ```bash
 # Storage Blob Data Reader
@@ -53,13 +55,4 @@ az role assignment create \
 | `NAMESPACE` | `<your namespace>` |
 | `RESOURCE_GROUP` | `<your resource group>` |
 
-3. Change the service connection name in the pipeline:
-
-```yaml
-  - task: AzureCLI@2
-    displayName: Deploy to AKS
-    env:
-      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-    inputs:
-      azureSubscription: test   # <- change this
-```
+3. RUN Pipeline on AzureDevOps
