@@ -14,39 +14,37 @@ spec:
         azure.workload.identity/user: "true"
     spec:
       serviceAccountName: orders-api
-      volumes:            
+      volumes:              # ← ADD THIS BLOCK
       - name: secrets
         csi:
           driver: secrets-store.csi.k8s.io
           readOnly: true
           volumeAttributes:
             secretProviderClass: orders-api-spc
-      containers:          
+      containers:           # ← already there
       - name: orders-api
-      securityContext:                  
-        runAsNonRoot: true
-        runAsUser: 10001
-      containers:
-      - name: orders-api
-        volumeMounts:      
+        securityContext:                    # CONVENTION — containers run as non-root
+          runAsNonRoot: true
+          runAsUser: 10001
+        volumeMounts:       # ← ADD THIS BLOCK
         - name: secrets
           mountPath: /mnt/secrets-store
           readOnly: true
         image: ptgtest12341kpw.azurecr.io/orders-api:morakot
         ports:
         - containerPort: 8080
-        resources:                      
+        resources:                        # CONVENTION — requests and limits are always set
           requests:
             cpu: 100m
             memory: 128Mi
           limits:
             cpu: 500m
             memory: 512Mi
-        livenessProbe:                    
-          httpGet:                       
+        livenessProbe:                    # CONVENTION — the cluster can ask whether
+          httpGet:                        #             the container is alive
             path: /healthz
             port: 8080
-        readinessProbe:                 
+        readinessProbe:                   #             and whether it is ready for traffic
           httpGet:
             path: /ready
             port: 8080
