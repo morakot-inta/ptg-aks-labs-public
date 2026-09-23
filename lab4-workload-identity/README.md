@@ -17,7 +17,12 @@ az storage container create \
   --account-name $STORAGE_ACCOUNT_NAME \
   --auth-mode login
   ```
+---
+## 2. Assige Identiy
+```bash
 
+Storage Blob Data Reader
+```
 ---
 
 ## 2. Three changes to your Deployment , at `spec.template.spec.containers[].env[]`
