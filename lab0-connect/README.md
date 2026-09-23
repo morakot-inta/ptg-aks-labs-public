@@ -44,6 +44,7 @@ export NAMESPACE="YOUR_NAME_OR_OTHER_NAME_THAT_YOU_NEED"
 ```
 ```bash
 kubectl create namespace "$NAMESPACE"
+kubectl get ns
 ```
 
 ## 5. Move into it
