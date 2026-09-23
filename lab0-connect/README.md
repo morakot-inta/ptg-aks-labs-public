@@ -40,9 +40,7 @@ You should see the cluster's nodes, all `Ready`.
 It is yours alone, and you already put its name in `$NAMESPACE`.
 
 ```bash
-export NAMESPACE="YOUR_NAME_OR_OTHER_NAME_THAT_YOU_NEED"
-```
-```bash
+export NAMESPACE="orders-service"
 kubectl create namespace "$NAMESPACE"
 kubectl get ns
 ```
