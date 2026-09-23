@@ -11,7 +11,7 @@ spec:
     metadata:
       labels:
         app: orders-api
-        azure.workload.identity/user: "true"
+        azure.workload.identity/use: "true"
     spec:
       serviceAccountName: orders-api
       volumes:              # ← ADD THIS BLOCK
