@@ -43,6 +43,7 @@ az role assignment create \
 
 ---
 4. Create a variable group named `aks-deploy`:
+- goto pipeline > library > create variable group
 
 | Variable | Value |
 |---|---|
