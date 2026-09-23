@@ -1,16 +1,52 @@
-# Lab 3 — solution: the two blocks added to your Lab 2 Deployment.
-# (only the parts that changed are shown here)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: orders-api
+  template:
+    metadata:
+      labels:
+        app: orders-api
+        azure.workload.identity/user: "true"
     spec:
-      volumes:                              # ADD 1
+      serviceAccountName: orders-api
+      volumes:            
       - name: secrets
         csi:
           driver: secrets-store.csi.k8s.io
           readOnly: true
           volumeAttributes:
             secretProviderClass: orders-api-spc
+      containers:          
+      - name: orders-api
+      securityContext:                  
+        runAsNonRoot: true
+        runAsUser: 10001
       containers:
       - name: orders-api
-        volumeMounts:                       # ADD 2
+        volumeMounts:      
         - name: secrets
           mountPath: /mnt/secrets-store
           readOnly: true
+        image: ptgtest12341kpw.azurecr.io/orders-api:morakot
+        ports:
+        - containerPort: 8080
+        resources:                      
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:                    
+          httpGet:                       
+            path: /healthz
+            port: 8080
+        readinessProbe:                 
+          httpGet:
+            path: /ready
+            port: 8080
