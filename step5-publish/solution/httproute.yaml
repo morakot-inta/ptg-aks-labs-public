@@ -9,7 +9,7 @@ spec:
   - name: ptg-shared-gateway
     namespace: gateway-system
   hostnames:
-  - "somchai.lab.ptg.local"       # example: your own name
+  - "orders-api.local"       # example: your own name
   rules:
   - backendRefs:
     - name: orders-api
