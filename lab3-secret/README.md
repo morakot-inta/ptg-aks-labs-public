@@ -23,8 +23,6 @@ az role assignment create \
   --assignee $CLIENT_ID \
   --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KEYVALUT_NAME"
 
-
-
 # Key Vault Secrets User --> get,list
 # Key Vault Secrets Officer --> get,list,create,delete
 # Key Vault Administrator --> manage RBAC
