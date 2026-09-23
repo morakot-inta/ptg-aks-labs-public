@@ -68,7 +68,7 @@ kubectl apply -f k8s/secretproviderclass.yaml
 
 **ADD 1 - enable workload identity, at `spec.template.metadata.labels.azure.workload.identity/user`
 ```yaml
-        azure.workload.identity/user: "true"
+        azure.workload.identity/use: "true"
 ```
 **ADD 2 - serviceAccountName , at `spec.template.spec.serviceAccountName` **
 ```yaml
