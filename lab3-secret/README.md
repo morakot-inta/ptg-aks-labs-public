@@ -8,7 +8,7 @@ az keyvault create \
   --resource-group $RG \
   --location southeastasia
 ```
-```
+```bash
 CLIENT_ID=$(az aks show \
   --resource-group "$RG" \
   --name "$CLUSTER" \
@@ -16,7 +16,7 @@ CLIENT_ID=$(az aks show \
   --output tsv)
 
 az role assignment create \
-  --role "Key Vault Secrets User" \ # get , list only if full access pls use Key Vault Administrator
+  --role "Key Vault Secrets User"  # get , list only if full access pls use Key Vault Administrator \
   --assignee $CLIENT_ID \
   --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KEYVALUT_NAME"
 ```
