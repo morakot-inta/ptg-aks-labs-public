@@ -11,6 +11,7 @@ az keyvault create \
 
 2. create manage identity
 ```bash
+
 ```
 
 2. assine role to keyvault
