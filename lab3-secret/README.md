@@ -2,9 +2,7 @@
 
 ## 0. Create Keyvault resource 
 ```bash
-export KEYVALUT_NAME=""
-```
-```bash
+export KEYVALUT_NAME="YOUR_KEYVAULT_NAME"
 az keyvault create \
   --name $KEYVALUT_NAME \
   --resource-group $RG \
