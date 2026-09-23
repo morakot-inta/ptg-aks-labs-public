@@ -64,9 +64,6 @@ POD=$(kubectl get pod -l app=orders-api --sort-by=.metadata.creationTimestamp -o
 kubectl exec $POD -- curl -s -i --resolve "order-api.local:80:$GW" http://order-api.local/healthz
 ```
 
-> Why not `kubectl run` a curl image? That means pulling and later cleaning up a second
-> image just to make one HTTP call. Your own pod already has `curl` — use that instead.
-
 ---
 
 ## Done when
