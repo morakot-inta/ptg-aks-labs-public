@@ -9,7 +9,7 @@ az keyvault create \
   --location southeastasia
 ```
 ```
-export KEYVAULT_ID=$(az aks show \
+KEYVAULT_ID=$(az aks show \
   --resource-group "$RG" \
   --name "$CLUSTER" \
   --query identityProfile.kubeletidentity.clientId \
