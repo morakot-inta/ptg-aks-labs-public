@@ -15,12 +15,9 @@ steps:
   - task: AzureCLI@2
     displayName: Deploy to AKS
     env:
-      # kubelogin's azurepipelines mode needs the pipeline's own OAuth token
       SYSTEM_ACCESSTOKEN: $(System.AccessToken)
     inputs:
-      # A workload identity federation service connection: no password,
-      # no service principal secret, nothing to rotate.
-      azureSubscription: ptg-aks-wif
+      azureSubscription: sc-aks
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
