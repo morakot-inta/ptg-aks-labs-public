@@ -18,7 +18,7 @@ Open `k8s/deployment.yaml` and replace the two placeholders at
 ```yaml
       containers:
       - name: orders-api
-        image: <ACR>.azurecr.io/orders-api:<NAMESPACE>    # ← this line
+        image: <ACR>.azurecr.io/order-api:poc-v1    # ← this line
         ports:
         - containerPort: 8080
 ```
