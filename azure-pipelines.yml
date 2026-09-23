@@ -28,4 +28,5 @@ steps:
         # not enough — the kubeconfig has to be converted before kubectl works.
         kubelogin convert-kubeconfig -l azurepipelines
 
-        kubectl apply -f k8s/ -n $(NAMESPACE)
+        kubectl apply -f k8s/ -n api-service
+        kubectl rollout restart deploy/order-api -n api-service
