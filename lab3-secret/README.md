@@ -1,6 +1,6 @@
 # Lab 3 — Mount a secret from Key Vault · 15 minutes
 
-## 0. Create Keyvault resource 
+## 1. Create Keyvault resource 
 ```bash
 export KEYVALUT_NAME="YOUR_KEYVAULT_NAME"
 az keyvault create \
@@ -8,6 +8,8 @@ az keyvault create \
   --resource-group $RG \
   --location southeastasia
 ```
+
+2. assine role to keyvault
 ```bash
 CLIENT_ID=$(az aks show \
   --resource-group "$RG" \
@@ -19,6 +21,17 @@ CLIENT_ID=$(az aks show \
 az role assignment create \
   --role "Key Vault Secrets User" \
   --assignee $CLIENT_ID \
+  --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KEYVALUT_NAME"
+
+
+
+# Key Vault Secrets User --> get,list
+# Key Vault Secrets Officer --> get,list,create,delete
+# Key Vault Administrator --> manage RBAC
+MY_OBJ_ID=$(az ad signed-in-user show --query id --output tsv)
+az role assignment create \
+  --role "Key Vault Secrets User" \
+  --assignee $MY_OBJ_ID \
   --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KEYVALUT_NAME"
 ```
 and create secret object 
