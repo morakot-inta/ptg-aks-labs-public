@@ -9,9 +9,15 @@ az keyvault create \
   --location southeastasia
 ```
 ```
+export KEYVAULT_ID=$(az aks show \
+  --resource-group "$RG" \
+  --name "$CLUSTER" \
+  --query identityProfile.kubeletidentity.clientId \
+  --output tsv)
+
 az role assignment create \
   --role "Key Vault Administrator" \
-  --assignee <CSI_Driver-object-id> \
+  --assignee $KEYVALUT_ID \
   --scope "/subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG/providers/Microsoft.KeyVault/vaults/$KEYVALUT_NAME"
 ```
 and create secret object 
