@@ -36,7 +36,7 @@ PRINCIPAL_ID=$(az identity show -g $RG -n id-ado-pipeline --query principalId -o
 az role assignment create \
   --assignee $PRINCIPAL_ID \
   --role "Azure Kubernetes Service RBAC Admin" \
-  --scope $AKS_RESOURCE_ID
+  --scope /subscriptions/$SUBSCRIPTION_ID/resourcegroups/$RG/providers/Microsoft.ContainerService/managedClusters/$CLUSTER
 ```
 
 ---
