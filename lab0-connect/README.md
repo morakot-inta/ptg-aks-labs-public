@@ -17,9 +17,6 @@ A browser window opens. Sign in with your PTG account.
 Set subscription id
 ```bash
 export SUBSCRIPTION_ID=""
-```
-```bash
-export SUBSCRIPTION_ID=""
 az account set --subscription $SUBSCRIPTION_ID
 ```
 
@@ -27,11 +24,7 @@ az account set --subscription $SUBSCRIPTION_ID
 
 ```bash
 export RG=""
-```
-```bash
 export CLUSTER=""
-```
-```bash
 az aks get-credentials --resource-group "$RG" --name "$CLUSTER"
 ```
 
