@@ -2,7 +2,7 @@
 
 ## 0. if ACR have not created yet, pls create ACR via this cli
 ```bash
-export ACR=""
+export ACR="YOUR_ACR_NAME"
 ```
 ```
 az acr create \
