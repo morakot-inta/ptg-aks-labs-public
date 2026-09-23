@@ -66,3 +66,15 @@ kubectl describe pod -l app=orders-api
 ```bash
 kubectl logs deploy/orders-api
 ```
+if it running should be see
+```
+Found 2 pods, using pod/orders-api-7897c7b999-khrmb
+orders-api listening on :8080  account=(unset) container=lab-data
+GET /ready -> 200
+GET /healthz -> 200
+GET /ready -> 200
+GET /healthz -> 200
+GET /ready -> 200
+GET /healthz -> 200
+GET /ready -> 200
+```
