@@ -30,7 +30,7 @@ spec:
         - name: secrets
           mountPath: /mnt/secrets-store
           readOnly: true
-        image: ptgtest12341kpw.azurecr.io/orders-api:morakot
+        image: <ACR_NAME>.azurecr.io/orders-api:<NAMESPACE>
         ports:
         - containerPort: 8080
         resources:                        # CONVENTION — requests and limits are always set
