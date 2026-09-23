@@ -20,13 +20,8 @@ az storage container create \
 
 ---
 
-## 2. Three changes to your Deployment
-
-
+## 2. Three changes to your Deployment , at `spec.template.spec.containers[].env[]`
 ```yaml
-      containers:
-      - name: orders-api
-        image: ...                            # already there
         env:                                  # ← ADD
         - name: STORAGE_ACCOUNT
           value: "<STORAGE-ACCOUNT>"
