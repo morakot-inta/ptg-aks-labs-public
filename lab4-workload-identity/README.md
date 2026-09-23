@@ -1,6 +1,6 @@
 # Lab 4 — Wire up Workload Identity · 45 minutes
 
-## 0. Create Storage account
+## 1. Create Storage account
 
 ```bash
 export STORAGE_ACCOUNT_NAME=""
@@ -21,60 +21,8 @@ az storage container create \
 
 ---
 
-## 1. Create the ServiceAccount
-
-create managed identity
-```bash
-az identity create \
-  --name id-order-api \
-  --resource-group $RG \
-  --location southeastasia
-```
-
-```bash
-kubectl apply -f k8s/serviceaccount.yaml
-```
-
 ## 2. Three changes to your Deployment
 
-Three changes, in three different places in `k8s/deployment.yaml`. The paths matter more
-than the YAML does — two of these look like they belong somewhere they do not.
-
-**A — at `spec.template.spec.serviceAccountName`**
-
-Inside the pod spec, a sibling of `containers`:
-
-```yaml
-spec:
-  template:
-    spec:                                     # ← pod spec
-      serviceAccountName: orders-api          # ← ADD
-      securityContext:                        # already there
-        runAsNonRoot: true
-```
-
-**B — at `spec.template.metadata.labels`**
-
-On the **pod template's** metadata, not the Deployment's, and not on the ServiceAccount:
-
-```yaml
-spec:
-  template:
-    metadata:
-      labels:
-        app: orders-api                       # already there
-        azure.workload.identity/use: "true"   # ← ADD
-    spec:
-      serviceAccountName: orders-api
-```
-
-This is the one almost everyone gets wrong. There is a `metadata:` at the top of the file
-too, and putting the label there does nothing at all — no error, no warning, and no
-identity.
-
-**C — at `spec.template.spec.containers[0].env`**
-
-Inside the container, alongside `ports` and `volumeMounts`:
 
 ```yaml
       containers:
