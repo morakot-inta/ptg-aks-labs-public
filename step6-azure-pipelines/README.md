@@ -58,4 +58,6 @@ git commit -am 'update'
 git push origin main
 ```
 
-3. RUN Pipeline on AzureDevOps
+3. Create Pipeline on AzureDevOps and Run
+
+Pipeline > Azure Repo Git > Select Repo > Run
