@@ -11,7 +11,7 @@ az keyvault create \
 
 2. create manage identity and federated
 ```bash
-export IDENTITY="IDENTITY_NAME"
+export IDENTITY_NAME="IDENTITY_NAME"
 az identity create -g $RG -n $IDENTITY_NAME -l southeastasia
 ```
 
