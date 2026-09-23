@@ -1,18 +1,55 @@
-# Lab 4 — solution. THREE changes, and the first two are in different places.
-# Setting only the ServiceAccount annotation is the mistake almost everyone makes.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-api
 spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: orders-api
   template:
     metadata:
       labels:
         app: orders-api
-        azure.workload.identity/use: "true"     # <-- B: ON THE POD TEMPLATE
+        azure.workload.identity/use: "true"
     spec:
-      serviceAccountName: orders-api            # <-- A: the annotated ServiceAccount
-      containers:
+      serviceAccountName: orders-api
+      volumes:              # ← ADD THIS BLOCK
+      - name: secrets
+        csi:
+          driver: secrets-store.csi.k8s.io
+          readOnly: true
+          volumeAttributes:
+            secretProviderClass: orders-api-spc
+      containers:           # ← already there
       - name: orders-api
-        env:                                    # <-- C: which account to talk to
+        env:                                  # ← ADD
         - name: STORAGE_ACCOUNT
-          value: "<STORAGE-ACCOUNT>"
+          value: "<STORAGE_ACCOUNT>"
         - name: NAMESPACE
           value: "<NAMESPACE>"
-        # ... the rest is unchanged from Lab 3 ...
+        securityContext:                    # CONVENTION — containers run as non-root
+          runAsNonRoot: true
+          runAsUser: 10001
+        volumeMounts:       # ← ADD THIS BLOCK
+        - name: secrets
+          mountPath: /mnt/secrets-store
+          readOnly: true
+        image: <ACR_NAME>.azurecr.io/orders-api:<NAMESPACE>
+        ports:
+        - containerPort: 8080
+        resources:                        # CONVENTION — requests and limits are always set
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:                    # CONVENTION — the cluster can ask whether
+          httpGet:                        #             the container is alive
+            path: /healthz
+            port: 8080
+        readinessProbe:                   #             and whether it is ready for traffic
+          httpGet:
+            path: /ready
+            port: 8080
