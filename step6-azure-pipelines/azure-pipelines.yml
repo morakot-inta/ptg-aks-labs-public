@@ -27,7 +27,7 @@ steps:
     inputs:
       # A workload identity federation service connection: no password,
       # no service principal secret, nothing to rotate.
-      azureSubscription: sc-aks-pipeline
+      azureSubscription: sc-aks
       scriptType: bash
       scriptLocation: inlineScript
       inlineScript: |
