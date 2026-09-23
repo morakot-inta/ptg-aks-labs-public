@@ -51,7 +51,7 @@ spec:
   - name: ptg-shared-gateway
     namespace: gateway-system
   hostnames:
-  - "<NAMESPACE>.local"     # ← this line
+  - "order-api.local"     # ← this line
 ```
 
 ```bash
@@ -73,11 +73,9 @@ From inside your own pod — `curl` is in the image, so nothing extra is pulled:
 Get Gateway IP Address
 ```bash
 GW=$(kubectl get gateway -n gateway-system -o jsonpath='{.items[*].status.addresses[*].value}{"\n"}')
-```
 
-```bash
 POD=$(kubectl get pod -l app=orders-api --sort-by=.metadata.creationTimestamp -o name | tail -1)
-kubectl exec $POD -- curl -s -i --resolve "$NAMESPACE.local:80:$GW" http://$NAMESPACE.local/healthz
+kubectl exec $POD -- curl -s -i --resolve "order-api.local:80:$GW" http://order-api.local/healthz
 ```
 
 > Why not `kubectl run` a curl image? That means pulling and later cleaning up a second
