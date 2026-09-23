@@ -29,7 +29,7 @@ az identity create \
 
 ```bash
 # Storage Blob Data Reader
-PRINCIPAL_ID=$(az identity show -g $RG -n id-ado-pipeline --query principalId -o tsv
+PRINCIPAL_ID=$(az identity show -g $RG -n id-ado-pipeline --query principalId -o tsv)
 
 # Azure Kubernetes Service RBAC Writer, Deployments, Pods, Services, Ingress within namespace
 # Azure Kubernetes Service RBAC Admin, manage Custom Resource Definitions (CRD) and create namespace
