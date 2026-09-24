@@ -1,5 +1,7 @@
 # Lab 4 — Access Storage Account via Managed Identity · 20 minutes
 
+![AKS Pod Access to Azure Storage via Managed Identity (Workload Identity)](../imgs/lab4-storage-workload-identity.png)
+
 ## 1. Create Storage account
 
 ```bash
