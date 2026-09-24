@@ -15,8 +15,8 @@ Everything you need to copy and paste during the session. Five labs, one folder 
 | 2 | [Deploy it](lab2-deployment/) | 40 min | 
 | 3 | [Mount a secret from Key Vault](lab3-secret/) | 40 min | 
 | 4 | [Access Storage Account via Manage Identity](lab4-workload-identity/) | 20 min | 
-| 5 | Publish the web app | 20 min | 
-| 6 | Deploy web app via Azure DevOps Pipeline | 30 min | 
+| 5 | [Publish the web app](step5-publish) | 20 min | 
+| 6 | [Deploy web app via Azure DevOps Pipeline](step6-azure-pipelines) | 30 min | 
 
 ---
 Tools for hand-on labs:
