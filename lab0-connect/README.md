@@ -8,6 +8,11 @@ Sign in, point `kubectl` at the training cluster, and land in your own namespace
 
 ## 1. Sign in
 
+- open the terminal and create the working directory
+```bash
+mkdir ~/ptg-training
+cd ~/ptg-training
+```
 ```bash
 az login
 ```
