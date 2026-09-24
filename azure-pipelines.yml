@@ -29,4 +29,4 @@ steps:
         kubelogin convert-kubeconfig -l azurepipelines
 
         kubectl apply -f k8s/ -n orders-service
-        kubectl rollout restart deploy/order-api -n orders-service
+        kubectl rollout restart deploy/orders-api -n orders-service
