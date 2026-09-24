@@ -15,9 +15,12 @@ after then attach the acr to aks
 az aks update --resource-group $RG --name $CLUSTER --attach-acr $ACR
 ```
 
-## 1. Build and push, in one command
-
-
+## 1. Build and push sample app
+- clone the training repo.
+```bash
+git clone https://github.com/morakot-inta/ptg-aks-labs-public
+```
+-  bild sample app
 ```bash
 az acr build --registry "$ACR" --image "order-api:poc-v1" sample-app/
 ```
