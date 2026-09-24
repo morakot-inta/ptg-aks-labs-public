@@ -22,7 +22,7 @@ would be unfinishable.
 
 **Three storage endpoints, not one.** `/whoami` fails when the pod has no identity;
 `/storage` fails when it has one but no role assignment. From the outside those two look
-identical, and separating them is what makes the lab debuggable in 45 minutes.
+identical, and separating them is what makes the lab debuggable in 20 minutes.
 
 **No key, anywhere.** There is no access key, connection string or SAS token in the code or
 in any manifest. `DefaultAzureCredential` is handed to the SDK and Azure decides the rest.

@@ -1,4 +1,4 @@
-# Deploying from Azure Pipelines
+# Lab 6 — Deploy web app via Azure DevOps Pipeline · 30 minutes
 
 1. Create a new project for testing the pipeline
 

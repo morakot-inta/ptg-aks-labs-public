@@ -1,4 +1,4 @@
-# Step 5 — Publish it
+# Lab 5 — Publish the web app · 20 minutes
 
 ## 0. Enable Gateway API and Create Share Gateway
 ```bash

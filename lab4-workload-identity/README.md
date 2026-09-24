@@ -1,4 +1,4 @@
-# Lab 4 — Wire up Workload Identity · 45 minutes
+# Lab 4 — Access Storage Account via Managed Identity · 20 minutes
 
 ## 1. Create Storage account
 

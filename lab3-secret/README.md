@@ -1,4 +1,4 @@
-# Lab 3 — Mount a secret from Key Vault · 15 minutes
+# Lab 3 — Mount a secret from Key Vault · 40 minutes
 
 ## 1. Create Keyvault resource 
 ```bash
