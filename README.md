@@ -17,11 +17,14 @@ Everything you need to copy and paste during the session. Five labs, one folder 
 | 4 | [Wire up Workload Identity](lab4-workload-identity/) | 45 min | you write a file to Azure Storage and read it back, with no key anywhere |
 
 ---
-
+**Kube Access: **
 https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?view=azure-cli-latest&pivots=winget
-
 https://kubernetes.io/docs/tasks/tools/install-kubectl-windows/
-
-https://jqlang.org/download/
-
 https://azure.github.io/kubelogin/install.html#using-azure-cli
+
+**Git: **
+https://git-scm.com/
+
+**Code Editor : **
+https://code.visualstudio.com/
+https://neovim.io/
