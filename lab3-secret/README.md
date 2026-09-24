@@ -1,5 +1,7 @@
 # Lab 3 — Mount a secret from Key Vault · 40 minutes
 
+![AKS: Retrieve Secrets from Azure Key Vault via Managed Identity](../imgs/lab3-keyvault-managed-identity.png)
+
 ## 1. Create Keyvault resource 
 ```bash
 export KEYVALUT_NAME="YOUR_KEYVAULT_NAME"
