@@ -1,4 +1,4 @@
-# Lab 2 — Deploy it · 45 minutes
+# Lab 2 — Deploy it · 30 minutes
 
 Deploy the image you built in Lab 1, onto the cluster, into your own namespace.
 

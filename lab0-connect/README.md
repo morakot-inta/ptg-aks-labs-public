@@ -1,4 +1,4 @@
-# Lab 0 — Get connected · 15 minutes
+# Lab 0 — Get connected · 25 minutes
 
 Sign in, point `kubectl` at the training cluster, and land in your own namespace.
 
