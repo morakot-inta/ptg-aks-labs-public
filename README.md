@@ -22,13 +22,13 @@ Everything you need to copy and paste during the session. Five labs, one folder 
 Tools for hand-on labs:
 
 **Kube Access**
-https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?view=azure-cli-latest&pivots=winget
-https://kubernetes.io/docs/tasks/tools/install-kubectl-windows/
-https://azure.github.io/kubelogin/install.html#using-azure-cli
+- https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?view=azure-cli-latest&pivots=winget
+- https://kubernetes.io/docs/tasks/tools/install-kubectl-windows/
+- https://azure.github.io/kubelogin/install.html#using-azure-cli
 
 **Git**
-https://git-scm.com/
+- https://git-scm.com/
 
 **Code Editor**
-https://code.visualstudio.com/
-https://neovim.io/
+- https://code.visualstudio.com/ or https://neovim.io/
+
