@@ -8,23 +8,27 @@ Everything you need to copy and paste during the session. Five labs, one folder 
 
 ## The labs
 
-| | Lab | Time | You finish when |
-|---|---|---|---|
-| 0 | [Get connected](lab0-connect/) | 15 min | `kubectl get pods` says *No resources found* |
-| 1 | [Build your image into ACR](lab1-build/) | 15 min | your tag is listed in the registry |
-| 2 | [Deploy it](lab2-deployment/) | 45 min | `kubectl get deploy` shows `READY 2/2` |
-| 3 | [Mount a secret from Key Vault](lab3-secret/) | 15 min | you can `cat` the secret inside the pod |
-| 4 | [Wire up Workload Identity](lab4-workload-identity/) | 45 min | you write a file to Azure Storage and read it back, with no key anywhere |
+| | Lab | Time |
+|---|---|---|
+| 0 | [Get connected](lab0-connect/) | 15 min | 
+| 1 | [Build your image into ACR](lab1-build/) | 20 min |
+| 2 | [Deploy it](lab2-deployment/) | 45 min | 
+| 3 | [Mount a secret from Key Vault](lab3-secret/) | 45 min | 
+| 4 | [Access Storage Account via Manage Identity](lab4-workload-identity/) | 20 min | 
+| 5 | Publish the web app | 30 min | 
+| 6 | Deploy web app via Azure DevOps Pipeline | 30 min | 
 
 ---
-**Kube Access: **
+Tools for hand-on labs:
+
+**Kube Access**
 https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?view=azure-cli-latest&pivots=winget
 https://kubernetes.io/docs/tasks/tools/install-kubectl-windows/
 https://azure.github.io/kubelogin/install.html#using-azure-cli
 
-**Git: **
+**Git**
 https://git-scm.com/
 
-**Code Editor : **
+**Code Editor**
 https://code.visualstudio.com/
 https://neovim.io/
